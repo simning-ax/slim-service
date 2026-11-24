@@ -17,5 +17,5 @@ services:
 
   auth-service:
     container_name: auth-service
-    image: ghcr.io/3584573427749/auth-service:latest
+    image: ghcr.io/simning-ax/auth-service:latest
     restart: unless-stopped
