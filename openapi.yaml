@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Auth Service API
-  version: 1.0.0
+  title: Slim Service Template API
+  version: 0.0.0
   description: >-
     OpenAPI för autentiserings- och användarhanteringstjänster i simning.ax-miljön
 
@@ -9,80 +9,97 @@ servers:
   - url: http://localhost:8080
 
 paths:
-  /users:
-    post:
-      summary: Create user
-      operationId: createUser
+  /health:
+    get:
+      operationId: getHealth
       tags:
-        - Users
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+        - Health
+      summary: Service health information
       responses:
-        '201':
-          description: User created
+        '200':
+          description: Health information
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid JSON
-        '409':
-          description: User already exists
-        '422':
-          description: Validation error
+                type: object
+                required:
+                  - statusCode
+                  - data
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    required:
+                      - status
+                      - service
+                      - version
+                      - checks
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - ok
+                          - degraded
+                      service:
+                        type: string
+                        example: slim-service
+                      version:
+                        type: string
+                        example: 1.5.0
+                      checks:
+                        type: object
+                        additionalProperties:
+                          type: string
 
 components:
   schemas:
-    CreateUserRequest:
+    ErrorResponse:
       type: object
       required:
-        - email
-        - firstName
-        - lastName
+        - type
+        - message
       properties:
-        email:
+        type:
           type: string
-          format: email
-          example: test@example.com
-        firstName:
+        message:
           type: string
-          minLength: 2
-          example: User
-        lastName:
-          type: string
-          minLength: 2
-          example: Name
+        details:
+          type: object
+          nullable: true
+          additionalProperties: true
 
-    User:
-      type: object
-      required:
-        - id
-        - email
-        - firstName
-        - lastName
-        - roles
-        - createdAt
-      properties:
-        id:
-          type: string
-          format: uuid
-        email:
-          type: string
-          format: email
-        firstName:
-          type: string
-        lastName:
-          type: string
-        roles:
-          type: array
-          items:
-            type: string
-          example:
-            - user
-          createdAt:
-            type: string
-            format: date-time
+
+  responses:
+    UnauthorizedResponse:
+      description: Autentisering saknas
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - statusCode
+              - error
+            properties:
+              statusCode:
+                type: integer
+                example: 401
+              error:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    ForbiddenResponse:
+      description: Saknar behörighet
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - statusCode
+              - error
+            properties:
+              statusCode:
+                type: integer
+                example: 403
+              error:
+                $ref: '#/components/schemas/ErrorResponse'
